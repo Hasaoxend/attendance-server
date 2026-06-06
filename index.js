@@ -52,6 +52,20 @@ app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ─── Serve Frontend (production) ───────────────────────────
+if (process.env.NODE_ENV === 'production') {
+    const publicDir = path.join(__dirname, 'public');
+    app.use(express.static(publicDir));
+
+    // SPA fallback: any non-API route → index.html
+    // Express 5 requires named wildcard syntax {*path}
+    app.get('{*path}', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+            res.sendFile(path.join(publicDir, 'index.html'));
+        }
+    });
+}
+
 (async () => {
     try {
         await ensureSchema(db);
