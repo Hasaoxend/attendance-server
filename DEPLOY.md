@@ -148,7 +148,7 @@ Trang cấu hình hiện ra. Điền **chính xác** theo bảng dưới:
 
 **Build Command** — copy **nguyên đoạn** này và paste vào ô Build Command:
 ```
-npm install && git clone https://github.com/Hasaoxend/attendance-client.git _client && cd _client && npm install && npm run build && cd .. && cp -r _client/dist public
+npm install && git clone https://github.com/Hasaoxend/attendance-client.git _client && cd _client && npm install --include=dev && npm run build && cd .. && cp -r _client/dist public
 ```
 
 > ⚠️ Nếu bạn đã **fork** repo ở Bước 1, đổi `Hasaoxend` thành username GitHub **của bạn** trong đoạn trên.
@@ -300,6 +300,23 @@ Mở trình duyệt (Chrome, Edge...), thay `URL-CUA-BAN` bằng URL thật từ
 1. Kiểm tra Build Command copy đúng y nguyên (1 dòng, không ngắt)
 2. Đảm bảo repo `attendance-client` là **Public** trên GitHub
 3. Nếu repo Private → cần dùng token: `git clone https://TOKEN@github.com/...`
+
+### ❌ Lỗi "Cannot find module 'vite'" hoặc "Cannot find type definition file for 'vite/client'"
+**Nguyên nhân**: Render đặt `NODE_ENV=production` → `npm install` bỏ qua `devDependencies` (vite, typescript...).
+**Cách sửa**:
+1. Vào Render → Service → **Settings** tab
+2. Tìm mục **Build Command**
+3. Đảm bảo phần `npm install` của client có `--include=dev`:
+   ```
+   ... cd _client && npm install --include=dev && npm run build ...
+   ```
+4. Nhấn **Save Changes** → **Manual Deploy**
+
+### ❌ Lỗi "could not read Username for 'https://github.com'"
+**Nguyên nhân**: Repo `attendance-client` đang ở chế độ **Private**, Render không có quyền clone.
+**Cách sửa**:
+- **Cách 1**: Đổi repo `attendance-client` sang **Public** trên GitHub (Settings → Danger Zone → Change visibility)
+- **Cách 2**: Dùng Personal Access Token: `git clone https://TOKEN@github.com/...`
 
 ### ❌ Lỗi "SASL: password must be a string"
 **Nguyên nhân**: `DATABASE_URL` chưa set hoặc sai.

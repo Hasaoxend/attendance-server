@@ -6,7 +6,7 @@ services:
       npm install &&
       git clone https://github.com/Hasaoxend/attendance-client.git _client &&
       cd _client &&
-      npm install &&
+      npm install --include=dev &&
       npm run build &&
       cd .. &&
       cp -r _client/dist public
