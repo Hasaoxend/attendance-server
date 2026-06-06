@@ -22,15 +22,25 @@ const allowedOrigins = [
     process.env.FRONTEND_URL,       // production (if separate frontend)
     'http://localhost:5173',         // Vite dev
     'http://localhost:4173',         // Vite preview
+    'http://localhost:3000',         // fallback dev
 ].filter(Boolean);
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl, same-origin in some browsers)
         if (!origin) return callback(null, true);
+
+        // Allow explicitly listed origins
         if (allowedOrigins.includes(origin)) return callback(null, true);
-        // In production, allow same-origin (frontend served from same Express server)
-        if (process.env.NODE_ENV === 'production') return callback(null, true);
+
+        // In production: frontend is served from the SAME Express server,
+        // so the origin will match the Render URL. Allow it.
+        if (isProduction) return callback(null, true);
+
+        // Dev: block unknown origins but log for debugging
+        console.warn(`[CORS] Blocked origin: ${origin}`);
         return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
