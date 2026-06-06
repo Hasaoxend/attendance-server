@@ -7,102 +7,74 @@
 
 ## 📋 Bạn cần chuẩn bị gì?
 
-| # | Cần gì | Có chưa? |
-|---|--------|----------|
-| 1 | **Tài khoản GitHub** — [đăng ký miễn phí](https://github.com/signup) | ☐ |
-| 2 | **Tài khoản Render** — [đăng ký miễn phí](https://render.com) (dùng GitHub để đăng nhập cho nhanh) | ☐ |
-| 3 | **Git** cài trên máy — [tải tại đây](https://git-scm.com/downloads) | ☐ |
-| 4 | **Node.js** (v18+) cài trên máy — [tải tại đây](https://nodejs.org) | ☐ |
-| 5 | Source code (2 thư mục: `attendance-server` và `attendance-client`) | ☐ |
+| # | Cần gì | Link |
+|---|--------|------|
+| 1 | **Tài khoản GitHub** | [đăng ký miễn phí](https://github.com/signup) |
+| 2 | **Tài khoản Render** | [đăng ký miễn phí](https://render.com) — nên dùng "Sign in with GitHub" |
+| 3 | **Git** cài trên máy | [tải tại đây](https://git-scm.com/downloads) |
+| 4 | **Node.js** (v18+) cài trên máy | [tải tại đây](https://nodejs.org) |
 
 **Kiểm tra Git và Node đã cài chưa**: mở PowerShell (hoặc Terminal), gõ:
 ```
 git --version
 node --version
 ```
-Nếu hiện version → OK. Nếu báo lỗi → cài lại theo link trên.
+Nếu hiện ra số version (ví dụ `git version 2.45.0`, `v20.11.0`) → OK.
+Nếu báo lỗi "không nhận ra lệnh" → cài lại theo link trên.
 
 ---
 
-## BƯỚC 1: Đưa code lên GitHub
+## 📦 Cấu trúc Source Code
 
-### 1.1 — Tạo repository mới trên GitHub
+Hệ thống gồm **2 repo riêng biệt** trên GitHub:
 
-1. Đăng nhập GitHub
-2. Nhấn nút **+** (góc phải trên) → chọn **New repository**
-3. Điền thông tin:
-   - **Repository name**: `attendance-app`
-   - **Description**: `Hệ thống điểm danh sinh viên`
-   - **Chọn**: `Public` (hoặc `Private` nếu muốn ẩn)
-   - ⚠️ **KHÔNG tick** "Add a README file"
-   - ⚠️ **KHÔNG tick** "Add .gitignore"
-4. Nhấn **Create repository**
-5. Bạn sẽ thấy trang hướng dẫn. **Giữ trang này mở**, ta sẽ cần URL repo.
-   - URL dạng: `https://github.com/TEN-CUA-BAN/attendance-app.git`
+| Repo | Chứa gì | GitHub URL |
+|------|---------|------------|
+| `attendance-server` | Backend API (Node.js + Express + PostgreSQL) | `https://github.com/Hasaoxend/attendance-server` |
+| `attendance-client` | Frontend giao diện (React + Vite + TypeScript) | `https://github.com/Hasaoxend/attendance-client` |
 
-### 1.2 — Gộp code và push lên GitHub
+> Khi deploy, chỉ cần tạo **1 service duy nhất** từ repo `attendance-server`.
+> Render sẽ tự động clone `attendance-client`, build, và nhúng vào server.
 
-Mở **PowerShell** (nhấn phím Windows, gõ `powershell`, nhấn Enter).
+---
 
-Copy **từng khối lệnh** dưới đây, paste vào PowerShell và nhấn Enter:
+## BƯỚC 1: Fork repo về GitHub của bạn (nếu cần)
 
-**Bước a) Tạo thư mục monorepo:**
-```powershell
-# Đổi đường dẫn nếu source code ở chỗ khác
-cd "d:\Visual Studio Project"
-mkdir attendance-app
-cd attendance-app
-```
+> Nếu bạn **đã là chủ repo** (tức username GitHub là `Hasaoxend`) → **bỏ qua bước này**, nhảy tới Bước 2.
 
-**Bước b) Copy source code vào (bỏ thư mục .git cũ và node_modules):**
-```powershell
-# Copy backend
-robocopy "..\ThucTap\attendance-server" ".\attendance-server" /E /XD .git node_modules public
+Nếu bạn nhận source code từ người khác và muốn deploy dưới tài khoản GitHub của bạn:
 
-# Copy frontend
-robocopy "..\ThucTap\attendance-client" ".\attendance-client" /E /XD .git node_modules dist .firebase
-```
-> ℹ️ robocopy sẽ in ra nhiều dòng, kệ nó. Miễn không có dòng đỏ `ERROR` là OK.
+### 1.1 — Fork repo Backend
 
-**Bước c) Tạo Git repo và push:**
-```powershell
-# Tạo git repo mới
-git init
-git branch -M main
+1. Vào `https://github.com/Hasaoxend/attendance-server`
+2. Nhấn nút **Fork** (góc phải trên)
+3. Chọn tài khoản GitHub của bạn → nhấn **Create fork**
+4. Bạn sẽ có repo: `https://github.com/TEN-CUA-BAN/attendance-server`
 
-# Thêm tất cả file
-git add .
+### 1.2 — Fork repo Frontend
 
-# Commit
-git commit -m "Initial commit: attendance system"
+1. Vào `https://github.com/Hasaoxend/attendance-client`
+2. Nhấn nút **Fork** → **Create fork**
+3. Bạn sẽ có repo: `https://github.com/TEN-CUA-BAN/attendance-client`
 
-# Kết nối GitHub (ĐỔI URL THÀNH CỦA BẠN)
-git remote add origin https://github.com/TEN-CUA-BAN/attendance-app.git
+### 1.3 — Cập nhật build command (QUAN TRỌNG nếu fork)
 
-# Push lên
-git push -u origin main
-```
+Sau khi fork, cần sửa 1 dòng trong file `render.yaml` (trong repo `attendance-server`):
 
-> ⚠️ **QUAN TRỌNG**: Thay `TEN-CUA-BAN` bằng username GitHub thật của bạn!
->
-> Nếu lần đầu push, Git sẽ hỏi đăng nhập GitHub. Làm theo hướng dẫn trên màn hình.
+1. Vào repo `attendance-server` trên GitHub **của bạn**
+2. Mở file `render.yaml`
+3. Nhấn nút bút chì (Edit) 
+4. Tìm dòng:
+   ```
+   git clone https://github.com/Hasaoxend/attendance-client.git _client &&
+   ```
+5. Đổi `Hasaoxend` thành **username GitHub của bạn**:
+   ```
+   git clone https://github.com/TEN-CUA-BAN/attendance-client.git _client &&
+   ```
+6. Nhấn **Commit changes**
 
-### 1.3 — Kiểm tra
-
-Vào lại trang GitHub repo của bạn, refresh. Phải thấy:
-```
-attendance-app/
-├── attendance-server/
-│   ├── index.js          ← Backend chính
-│   ├── render.yaml       ← Cấu hình deploy
-│   ├── package.json
-│   └── ...
-└── attendance-client/
-    ├── src/              ← Source React
-    ├── package.json
-    └── ...
-```
-✅ Nếu thấy 2 thư mục → **Bước 1 thành công!**
+> ⚠️ Nếu quên bước này, Render sẽ clone repo gốc thay vì repo fork của bạn.
 
 ---
 
@@ -111,38 +83,40 @@ attendance-app/
 ### 2.1 — Đăng nhập Render
 
 1. Vào [dashboard.render.com](https://dashboard.render.com)
-2. Nhấn **Sign in with GitHub** (nhanh nhất)
-3. Cho phép Render truy cập GitHub
+2. Nhấn **Sign in with GitHub** (nhanh nhất, nên dùng cách này)
+3. Cho phép Render truy cập GitHub của bạn
 
 ### 2.2 — Tạo PostgreSQL Database
 
-1. Trên Dashboard, nhấn nút **New +** (góc phải trên)
-2. Chọn **PostgreSQL**
-3. Điền thông tin:
+1. Trên Dashboard, nhấn nút **New +** (góc phải trên, nút màu xanh/tím)
+2. Chọn **PostgreSQL** trong menu dropdown
+3. Trang tạo database hiện ra. Điền **chính xác** như sau:
 
 | Mục | Điền gì |
 |-----|---------|
 | **Name** | `attendance-db` |
 | **Database** | `attendance_db` |
-| **User** | Để mặc định (Render tự tạo) |
-| **Region** | Chọn `Singapore (Southeast Asia)` ← gần VN nhất |
-| **PostgreSQL Version** | Để mặc định |
-| **Plan** | Chọn **Free** |
+| **User** | Để nguyên mặc định (Render tự tạo) |
+| **Region** | Chọn `Singapore (Southeast Asia)` ← gần Việt Nam nhất |
+| **PostgreSQL Version** | Để nguyên mặc định |
+| **Plan** | Kéo xuống cuối, chọn **Free** |
 
-4. Nhấn **Create Database**
-5. Chờ 1-2 phút, trạng thái chuyển thành **Available**
+4. Nhấn nút **Create Database** (nút lớn ở cuối trang)
+5. Chờ 1-2 phút. Khi trạng thái hiện **Available** (chữ xanh lá) → database đã sẵn sàng
 
-### 2.3 — Lấy Database URL
+### 2.3 — Lấy Database URL (quan trọng, cần cho bước sau)
 
-1. Sau khi database tạo xong, bạn sẽ ở trang thông tin database
+1. Bạn đang ở trang thông tin database vừa tạo
 2. Kéo xuống phần **Connections**
 3. Tìm dòng **Internal Database URL**
-4. Nhấn nút **Copy** bên cạnh
-5. **Lưu lại** (paste vào Notepad tạm) — sẽ dùng ở Bước 3
+   - Dạng: `postgresql://attendance_db_user:ABC123xyz@dpg-xxx.singapore-postgres.render.com/attendance_db`
+4. Nhấn nút **Copy** 📋 bên cạnh dòng đó
+5. **Mở Notepad**, paste vào đó và lưu lại — bạn sẽ cần paste chuỗi này ở Bước 3
 
-> URL dạng: `postgresql://attendance_db_user:ABC123xyz@dpg-xxx-a.singapore-postgres.render.com/attendance_db`
+> ⚠️ Copy dòng **Internal** Database URL (không phải External).
+> Internal nhanh hơn vì giao tiếp nội bộ trong Render.
 
-> ⚠️ **Lưu ý**: Free database sẽ bị xóa sau **90 ngày**. Đủ cho demo và thực tập.
+> ⚠️ Free database sẽ bị xóa sau **90 ngày**. Đủ cho demo/thực tập.
 
 ---
 
@@ -150,202 +124,237 @@ attendance-app/
 
 ### 3.1 — Tạo Web Service
 
-1. Trên Render Dashboard, nhấn **New +** → **Web Service**
+1. Trên Render Dashboard, nhấn **New +** (góc phải trên) → chọn **Web Service**
 2. Chọn **Build and deploy from a Git repository** → nhấn **Next**
-3. Tìm repo `attendance-app` trong danh sách
-   - Nếu không thấy → nhấn **Configure account** → cho phép Render truy cập repo đó
-4. Nhấn **Connect** bên cạnh repo `attendance-app`
+3. Danh sách repo GitHub của bạn sẽ hiện ra
+4. Tìm repo **`attendance-server`** trong danh sách
+   - **Nếu không thấy repo**: nhấn link **Configure account** → trang GitHub mở ra → tick chọn repo `attendance-server` → nhấn **Save** → quay lại Render
+5. Nhấn nút **Connect** bên cạnh repo `attendance-server`
 
 ### 3.2 — Cấu hình Web Service
 
-Điền **chính xác** như bảng dưới:
+Trang cấu hình hiện ra. Điền **chính xác** theo bảng dưới:
 
-| Mục | Điền gì |
-|-----|---------|
-| **Name** | `attendance-app` |
-| **Region** | **Cùng region với database** (ví dụ: `Singapore (Southeast Asia)`) |
-| **Branch** | `main` |
-| **Root Directory** | `attendance-server` |
-| **Runtime** | `Node` |
-| **Build Command** | *(copy nguyên đoạn dưới)* |
-| **Start Command** | `node index.js` |
-| **Plan** | `Free` |
+| Mục | Điền gì | Giải thích |
+|-----|---------|------------|
+| **Name** | `attendance-app` | Tên hiển thị trên Render |
+| **Region** | `Singapore (Southeast Asia)` | Phải **cùng region** với database ở Bước 2 |
+| **Branch** | `main` | Thường đã chọn sẵn |
+| **Root Directory** | *(để trống)* | Vì đây là repo riêng, không phải monorepo |
+| **Runtime** | `Node` | Chọn trong dropdown |
+| **Build Command** | *(xem bên dưới)* | Copy nguyên đoạn |
+| **Start Command** | `node index.js` | Gõ chính xác |
+| **Plan** | `Free` | Kéo xuống chọn |
 
-**Build Command** — copy nguyên đoạn này:
+**Build Command** — copy **nguyên đoạn** này và paste vào ô Build Command:
 ```
-npm install && cd ../attendance-client && npm install && npm run build && cp -r dist ../attendance-server/public
+npm install && git clone https://github.com/Hasaoxend/attendance-client.git _client && cd _client && npm install && npm run build && cd .. && cp -r _client/dist public
 ```
 
-> ⚠️ **Root Directory = `attendance-server`** ← phải điền đúng, không phải để trống!
+> ⚠️ Nếu bạn đã **fork** repo ở Bước 1, đổi `Hasaoxend` thành username GitHub **của bạn** trong đoạn trên.
+
+> ⚠️ Copy **nguyên 1 dòng**, không ngắt dòng. Paste hết vào 1 ô.
 
 ### 3.3 — Thêm Environment Variables
 
-Kéo xuống phần **Environment Variables**, nhấn **Add Environment Variable** cho mỗi dòng:
+Vẫn trong trang tạo service. Kéo xuống phần **Environment Variables**.
 
-| Key | Value | Ghi chú |
-|-----|-------|---------|
-| `NODE_ENV` | `production` | Gõ chữ `production` |
-| `DATABASE_URL` | *(paste URL đã copy ở Bước 2.3)* | Paste nguyên chuỗi dài |
-| `JWT_SECRET` | `MyJwtSecret2024xYz` | Đổi thành chuỗi bất kỳ bạn muốn |
-| `QR_SECRET` | `MyQrSecret2024aBc` | Đổi thành chuỗi bất kỳ bạn muốn |
+Nhấn **Add Environment Variable** rồi điền cho **từng dòng** dưới đây:
 
-> 💡 `JWT_SECRET` và `QR_SECRET` là chuỗi bí mật bất kỳ (ít nhất 16 ký tự). 
-> Ví dụ: `tR4nG_d@i_h0c_2024!` — miễn là đừng để lộ cho ai.
+| Nhấn "Add" | Key (ô bên trái) | Value (ô bên phải) |
+|-------------|-------------------|---------------------|
+| Lần 1 | `NODE_ENV` | `production` |
+| Lần 2 | `DATABASE_URL` | *(paste chuỗi dài đã copy ở Bước 2.3)* |
+| Lần 3 | `JWT_SECRET` | Gõ chuỗi bí mật bất kỳ, ví dụ: `mySecretKey2024!@abc` |
+| Lần 4 | `QR_SECRET` | Gõ chuỗi bí mật bất kỳ, ví dụ: `qrSecretXyz2024!@def` |
 
-### 3.4 — Deploy!
+> 💡 **JWT_SECRET** và **QR_SECRET** là "chìa khóa bí mật" của ứng dụng.
+> Bạn tự nghĩ ra chuỗi bất kỳ (ít nhất 16 ký tự, pha lẫn chữ + số + ký tự đặc biệt).
+> Ví dụ: `diemDanh_sv_2024!@#` — miễn sao không để lộ cho ai.
 
-1. Nhấn **Create Web Service**
-2. Render bắt đầu build. Bạn sẽ thấy log chạy trên màn hình
-3. **Chờ 3-5 phút** — quá trình build gồm:
-   - Cài đặt backend dependencies
-   - Cài đặt frontend dependencies  
-   - Build frontend
-   - Copy vào backend
-   - Khởi động server
+### 3.4 — Nhấn Deploy!
 
-4. Khi thấy dòng log:
+1. Kiểm tra lại tất cả thông tin đã điền
+2. Nhấn nút **Create Web Service** (nút lớn ở cuối trang)
+3. Render bắt đầu build. Bạn sẽ thấy **log chạy trên màn hình** (chữ trắng trên nền đen)
+
+**Chờ 3-5 phút.** Quá trình build gồm:
+```
+==> Installing dependencies (npm install)        ← Cài backend
+==> Cloning attendance-client                     ← Tải frontend 
+==> Installing frontend dependencies              ← Cài frontend
+==> Building frontend (vite build)                ← Build React
+==> Copying dist to public                        ← Copy vào server
+==> Starting server (node index.js)               ← Khởi động!
+```
+
+4. **Deploy thành công** khi bạn thấy dòng log:
    ```
    Server is running on port 10000
    [DB] Schema ensured
    ```
-   → 🎉 **Deploy thành công!**
+   
+5. Trạng thái ở đầu trang chuyển thành **Live** (chữ xanh lá) 🎉
 
-5. Nếu thấy lỗi đỏ → xem phần **Xử lý lỗi thường gặp** ở cuối.
+> ❌ Nếu thấy lỗi đỏ → xem phần **Xử lý lỗi thường gặp** ở cuối trang.
 
 ### 3.5 — Lấy URL ứng dụng
 
-1. Ở đầu trang Web Service, dưới tên service
+Sau khi deploy thành công:
+1. Nhìn phần **đầu trang** Web Service, ngay dưới tên service
 2. Bạn sẽ thấy URL dạng: `https://attendance-app-xxxx.onrender.com`
-3. **Đây là URL ứng dụng của bạn!** Gửi cho ai cũng truy cập được.
+3. Nhấn vào URL đó → mở tab mới → **thấy trang web** của bạn!
+4. **Đây chính là link chia sẻ** — gửi cho ai cũng truy cập được
 
 ---
 
-## BƯỚC 4: Tạo dữ liệu mẫu (tùy chọn)
+## BƯỚC 4: Tạo dữ liệu mẫu (để có tài khoản đăng nhập)
 
-Nếu muốn có sẵn tài khoản test, làm như sau:
+Lần đầu deploy, database hoàn toàn trống. Cần tạo dữ liệu mẫu.
 
 ### 4.1 — Mở Shell trên Render
 
-1. Vào Render Dashboard → chọn service `attendance-app`
-2. Nhấn tab **Shell** (bên cạnh Logs, Events...)
-3. Chờ terminal mở
+1. Vào Render Dashboard → nhấn vào service **attendance-app**
+2. Nhấn tab **Shell** (thanh tab phía trên, bên cạnh Logs, Events, Metrics...)
+3. Chờ vài giây, terminal đen hiện ra với dấu `$`
 
-### 4.2 — Chạy seed
+### 4.2 — Chạy lệnh tạo dữ liệu
 
-Gõ lệnh:
+Gõ lệnh sau rồi nhấn Enter:
 ```bash
 node seed.js
 ```
 
-Khi thấy `Seeding completed successfully!` → xong!
+Chờ vài giây. Khi thấy:
+```
+--- Initializing Database (PostgreSQL) ---
+Clearing old data...
+Seeding users...
+Seeding events...
+--- Seeding completed successfully! ---
+```
+→ ✅ **Dữ liệu mẫu đã sẵn sàng!**
 
-### 4.3 — Tài khoản test có sẵn
+### 4.3 — Tài khoản để đăng nhập
 
-| Vai trò | Username | Mật khẩu |
-|---------|----------|-----------|
-| Admin | `admin` | `admin123` |
-| Cán bộ Đoàn | `union_officer` | `password123` |
-| Sinh viên 1 | `student` | `password123` |
-| Sinh viên 2 | `student2` | `password123` |
+| Vai trò | Username | Mật khẩu | Dùng để |
+|---------|----------|-----------|---------|
+| **Admin** | `admin` | `admin123` | Quản lý toàn bộ hệ thống |
+| **Cán bộ Đoàn** | `union_officer` | `password123` | Tạo/quản lý sự kiện |
+| **Sinh viên 1** | `student` | `password123` | Đăng ký + điểm danh sự kiện |
+| **Sinh viên 2** | `student2` | `password123` | Test thêm |
 
 ---
 
 ## BƯỚC 5: Kiểm tra ứng dụng
 
-Mở trình duyệt, truy cập URL từ Bước 3.5:
+Mở trình duyệt (Chrome, Edge...), thay `URL-CUA-BAN` bằng URL thật từ Bước 3.5:
 
-| # | Kiểm tra | Cách test | Kết quả đúng |
-|---|----------|-----------|--------------|
-| 1 | Server hoạt động | Vào `https://URL-CUA-BAN/api/health` | Thấy `{"status":"ok"}` |
-| 2 | Trang web hiển thị | Vào `https://URL-CUA-BAN/` | Thấy trang đăng nhập |
-| 3 | Đăng nhập | Nhập `admin` / `admin123` | Vào được dashboard |
-| 4 | Tạo sự kiện | Vào Quản lý sự kiện → Tạo mới | Tạo thành công |
-| 5 | Điểm danh | Mở sự kiện → Bật điểm danh → Scan QR | Check-in thành công |
-| 6 | Xem báo cáo | Vào Báo cáo / Thống kê | Dữ liệu hiển thị |
+### 5.1 — Test nhanh
+
+| # | Làm gì | Expected |
+|---|--------|----------|
+| 1 | Vào `https://URL-CUA-BAN/api/health` | Thấy `{"status":"ok","timestamp":"..."}` |
+| 2 | Vào `https://URL-CUA-BAN/` | Thấy trang đăng nhập |
+| 3 | Đăng nhập: `admin` / `admin123` | Vào được dashboard admin |
+
+### 5.2 — Test chức năng chính
+
+| # | Chức năng | Cách test |
+|---|-----------|-----------|
+| 4 | Tạo sự kiện | Admin → Quản lý sự kiện → Tạo mới → Điền form → Lưu |
+| 5 | Đăng ký sự kiện | Đăng xuất → đăng nhập `student` → Tìm sự kiện → Đăng ký |
+| 6 | Điểm danh | Admin bật QR → Student scan QR |
+| 7 | Xem báo cáo | Admin → Báo cáo / Thống kê |
 
 ---
 
 ## ⚡ Lưu ý quan trọng khi dùng Render Free
 
-### 1. Server tự tắt khi không dùng
-- Free tier sẽ **tắt server sau 15 phút** không có ai truy cập
-- Lần truy cập đầu tiên sau khi tắt: **chậm 30-60 giây** (chờ server khởi động lại)
+### 1. Server "ngủ" khi không ai dùng
+- Free tier **tắt server sau 15 phút** không có ai truy cập
+- Lần truy cập đầu tiên sau khi "ngủ": **chờ 30-60 giây** (server khởi động lại)
 - Sau đó nhanh bình thường
 - **Đây là bình thường**, không phải lỗi
 
 ### 2. File upload sẽ mất khi re-deploy
-- Ảnh, file tải lên sẽ **bị xóa** khi Render re-deploy
-- Dùng cho demo/thực tập thì OK
-- Nếu cần giữ file lâu dài → cần dùng dịch vụ lưu trữ ngoài (Cloudinary, AWS S3)
+- Ảnh, file tải lên sẽ **bị xóa** khi Render re-deploy hoặc restart
+- Cho mục đích demo/thực tập thì OK
+- Muốn giữ lâu dài → cần dùng Cloudinary hoặc AWS S3
 
 ### 3. Database hết hạn sau 90 ngày
 - Free database tự xóa sau 90 ngày
-- Backup trước khi hết hạn (xem phần Backup bên dưới)
-- Hoặc tạo database mới và seed lại
+- Tạo database mới và chạy `node seed.js` lại là xong
 
 ### 4. Tự động deploy khi push code
-- Mỗi lần bạn `git push` lên branch `main` → Render **tự build và deploy lại**
-- Không cần vào Dashboard làm gì
+- Mỗi lần push code lên branch `main` → Render **tự build và deploy lại** (mất 3-5 phút)
+- Không cần vào Dashboard bấm gì
 
 ---
 
 ## 🔧 Xử lý lỗi thường gặp
 
-### Lỗi: "Build failed"
-**Nguyên nhân**: Thường do `Root Directory` sai hoặc `Build Command` sai
+### ❌ Lỗi "Build failed"
+**Nguyên nhân**: Build Command sai, hoặc repo client không truy cập được.
 **Cách sửa**:
-1. Vào Render → Service → Settings
-2. Kiểm tra `Root Directory` = `attendance-server` (không phải trống, không phải `/`)
-3. Kiểm tra Build Command copy đúng y nguyên
+1. Kiểm tra Build Command copy đúng y nguyên (1 dòng, không ngắt)
+2. Đảm bảo repo `attendance-client` là **Public** trên GitHub
+3. Nếu repo Private → cần dùng token: `git clone https://TOKEN@github.com/...`
 
-### Lỗi: "SASL: SCRAM-SERVER-FIRST-MESSAGE" hoặc "password must be a string"
-**Nguyên nhân**: `DATABASE_URL` chưa set hoặc sai
+### ❌ Lỗi "SASL: password must be a string"
+**Nguyên nhân**: `DATABASE_URL` chưa set hoặc sai.
 **Cách sửa**:
-1. Vào Render → Service → Environment
-2. Kiểm tra `DATABASE_URL` đã paste đúng Internal URL từ database
-3. Đảm bảo copy **Internal** Database URL (không phải External)
+1. Vào Render → Service → **Environment** tab
+2. Kiểm tra key `DATABASE_URL` đã paste đúng **Internal** Database URL
+3. Nhấn **Save Changes** → service tự restart
 
-### Lỗi: "Not allowed by CORS"  
-**Nguyên nhân**: FE và BE khác domain
-**Cách sửa**: Không xảy ra nếu dùng đúng cách deploy này (cùng domain). Nếu bạn test local, đọc phần Chạy Local bên dưới.
+### ❌ Trang trắng hoặc "Cannot GET /"
+**Nguyên nhân**: FE chưa build hoặc chưa copy vào `public/`.
+**Cách sửa**: Xem log build, tìm dòng lỗi ở phần `npm run build` hoặc `cp -r`.
 
-### Lỗi: Trang trắng hoặc 404 khi truy cập
-**Nguyên nhân**: Build FE thất bại hoặc không copy vào `public/`
-**Cách sửa**: Xem log build trên Render, tìm dòng lỗi trong phần build frontend
+### ❌ API trả 500 Internal Server Error
+**Nguyên nhân**: DB chưa có tables (chưa seed).
+**Cách sửa**: Vào Shell tab, chạy `node seed.js`.
 
 ---
 
-## 💻 Chạy Local (dành cho developer)
+## 💻 Chạy trên máy cá nhân (cho developer)
 
-Nếu muốn chạy trên máy cá nhân để phát triển:
+Nếu muốn chạy local để phát triển thêm:
 
-### Cài đặt
+### Cài đặt PostgreSQL trên máy
+1. Tải [PostgreSQL](https://www.postgresql.org/download/) và cài
+2. Mở pgAdmin → tạo database `student_system`
+
+### Chạy Backend
 ```powershell
-# Terminal 1: Backend
 cd attendance-server
 copy .env.example .env
-# Sửa file .env: điền DB_HOST, DB_USER, DB_PASS, DB_NAME, JWT_SECRET, QR_SECRET
+# Mở file .env bằng Notepad, sửa DB_PASS = mật khẩu PostgreSQL của bạn
 npm install
 npm run dev
+```
 
-# Terminal 2: Frontend  
+### Chạy Frontend
+```powershell
 cd attendance-client
 npm install
 npm run dev
 ```
 
 ### Truy cập
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:5000/api`
-- Frontend tự proxy `/api` requests tới backend (cấu hình sẵn trong `vite.config.ts`)
+- **Frontend**: `http://localhost:5173` (tự proxy API tới backend)
+- **Backend API**: `http://localhost:5000/api`
 
 ---
 
-## 📦 Backup Database
+## 📦 Backup Database (nếu cần)
+
+Trước khi database hết hạn 90 ngày:
 
 ```bash
 # Trên máy cá nhân (cần cài PostgreSQL client)
-# Thay DATABASE_URL bằng External Database URL từ Render
+# Lấy External Database URL từ Render Dashboard
 pg_dump "postgresql://user:pass@host/dbname" > backup.sql
 
 # Restore vào database mới
@@ -354,10 +363,35 @@ psql "postgresql://user:pass@new-host/dbname" < backup.sql
 
 ---
 
-## 📞 Hỗ trợ
+## 🔄 Cập nhật ứng dụng
+
+Khi có code mới:
+
+```powershell
+# Trong thư mục attendance-server
+git add .
+git commit -m "mô tả thay đổi"
+git push
+
+# Render tự động re-deploy (3-5 phút)
+```
+
+Nếu code frontend thay đổi → push ở repo `attendance-client`:
+```powershell
+# Trong thư mục attendance-client
+git add .
+git commit -m "mô tả thay đổi"  
+git push
+
+# Sau đó vào Render Dashboard → service → nhấn "Manual Deploy" → "Deploy latest commit"
+# (vì Render chỉ watch repo server, không tự detect thay đổi ở repo client)
+```
+
+---
+
+## 📞 Liên hệ hỗ trợ
 
 Nếu gặp vấn đề:
 1. Xem **Logs** trên Render Dashboard (tab Logs trong service)
-2. Google thông báo lỗi
+2. Google thông báo lỗi kèm "Render.com"
 3. Liên hệ người phát triển
-

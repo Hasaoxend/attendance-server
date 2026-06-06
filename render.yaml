@@ -4,10 +4,12 @@ services:
     runtime: node
     buildCommand: |
       npm install &&
-      cd ../attendance-client &&
+      git clone https://github.com/Hasaoxend/attendance-client.git _client &&
+      cd _client &&
       npm install &&
       npm run build &&
-      cp -r dist ../attendance-server/public
+      cd .. &&
+      cp -r _client/dist public
     startCommand: node index.js
     envVars:
       - key: NODE_ENV

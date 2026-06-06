@@ -18,6 +18,7 @@ Thumbs.db
 
 # Frontend build output (generated at deploy time)
 public/
+_client/
 
 # Editor
 .vscode/
