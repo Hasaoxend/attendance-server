@@ -17,18 +17,20 @@ const reportRoutes = require('./routes/reports');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS — only allow known frontends
+// CORS — allow known frontends + same-origin (production on Render)
 const allowedOrigins = [
-    process.env.FRONTEND_URL,       // production (Firebase Hosting)
+    process.env.FRONTEND_URL,       // production (if separate frontend)
     'http://localhost:5173',         // Vite dev
     'http://localhost:4173',         // Vite preview
 ].filter(Boolean);
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, curl, etc.)
+        // Allow requests with no origin (mobile apps, curl, same-origin in some browsers)
         if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) return callback(null, true);
+        // In production, allow same-origin (frontend served from same Express server)
+        if (process.env.NODE_ENV === 'production') return callback(null, true);
         return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
