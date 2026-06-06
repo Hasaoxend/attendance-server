@@ -210,32 +210,31 @@ Sau khi deploy thành công:
 
 ## BƯỚC 4: Tạo dữ liệu mẫu (để có tài khoản đăng nhập)
 
-Lần đầu deploy, database hoàn toàn trống. Cần tạo dữ liệu mẫu.
+Lần đầu deploy, database hoàn toàn trống. Server sẽ **tự động tạo tables** khi khởi động, nhưng cần tạo dữ liệu mẫu (tài khoản, sự kiện test).
 
-### 4.1 — Mở Shell trên Render
+> 💡 Render Free tier **không có Shell** nên dùng API endpoint thay thế.
 
-1. Vào Render Dashboard → nhấn vào service **attendance-app**
-2. Nhấn tab **Shell** (thanh tab phía trên, bên cạnh Logs, Events, Metrics...)
-3. Chờ vài giây, terminal đen hiện ra với dấu `$`
+### 4.1 — Seed qua API (đơn giản nhất)
 
-### 4.2 — Chạy lệnh tạo dữ liệu
+Mở trình duyệt hoặc PowerShell, gửi request POST tới endpoint seed:
 
-Gõ lệnh sau rồi nhấn Enter:
-```bash
-node seed.js
+**Cách 1 — Dùng trình duyệt (DevTools Console):**
+1. Mở trang web `https://URL-CUA-BAN/` (URL từ Bước 3.5)
+2. Nhấn `F12` → chọn tab **Console**
+3. Paste dòng này rồi nhấn Enter:
+   ```javascript
+   fetch('/api/seed', { method: 'POST' }).then(r => r.json()).then(console.log)
+   ```
+4. Thấy `{ success: true, message: "Seed completed!..." }` → ✅ OK!
+
+**Cách 2 — Dùng PowerShell trên máy:**
+```powershell
+Invoke-RestMethod -Method POST -Uri "https://URL-CUA-BAN/api/seed"
 ```
 
-Chờ vài giây. Khi thấy:
-```
---- Initializing Database (PostgreSQL) ---
-Clearing old data...
-Seeding users...
-Seeding events...
---- Seeding completed successfully! ---
-```
-→ ✅ **Dữ liệu mẫu đã sẵn sàng!**
+> ⚠️ Seed endpoint chỉ hoạt động khi database **trống** (chưa có user nào). Nếu đã có dữ liệu, nó sẽ từ chối để tránh ghi đè.
 
-### 4.3 — Tài khoản để đăng nhập
+### 4.2 — Tài khoản để đăng nhập
 
 | Vai trò | Username | Mật khẩu | Dùng để |
 |---------|----------|-----------|---------|

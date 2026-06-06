@@ -1,10 +1,73 @@
 /**
  * Ensure DB schema is compatible with the current backend code.
- * This prevents 500 errors when the database hasn't been updated yet.
+ * Creates tables if they don't exist, then adds any missing columns.
+ * This allows the app to self-initialize on a fresh database.
  */
 
 module.exports = async function ensureSchema(db) {
-  // Add missing columns (idempotent)
+  // ── Step 1: Create core tables if they don't exist ──────────────
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(50) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      name VARCHAR(100) NOT NULL,
+      role VARCHAR(20) NOT NULL DEFAULT 'student',
+      student_code VARCHAR(20) UNIQUE DEFAULT NULL,
+      device_id VARCHAR(255) DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS events (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      location_lat DECIMAL(10, 8) NOT NULL DEFAULT 0,
+      location_lng DECIMAL(11, 8) NOT NULL DEFAULT 0,
+      radius INT DEFAULT 50,
+      start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      end_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      score INT DEFAULT 0,
+      unit VARCHAR(100) DEFAULT '',
+      max_participants INT DEFAULT 100,
+      qr_type VARCHAR(20) DEFAULT 'dynamic',
+      content TEXT DEFAULT '',
+      training_points INT DEFAULT 0,
+      priority INT DEFAULT 0,
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS checkins (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+      checkin_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      lat DECIMAL(10, 8),
+      lng DECIMAL(11, 8),
+      device_id VARCHAR(255),
+      ip_address VARCHAR(45),
+      status VARCHAR(20) DEFAULT 'success',
+      anomaly_details TEXT DEFAULT NULL,
+      UNIQUE (user_id, event_id)
+    );
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS event_registrations (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+      status VARCHAR(20) NOT NULL DEFAULT 'registered',
+      registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (user_id, event_id)
+    );
+  `);
+
+  // ── Step 2: Add missing columns (idempotent migrations) ─────────
   await db.query(`
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS class_name VARCHAR(100) DEFAULT '',
@@ -21,18 +84,7 @@ module.exports = async function ensureSchema(db) {
       ADD COLUMN IF NOT EXISTS allowed_institute VARCHAR(150) DEFAULT '';
   `);
 
-  // Create event registration table (idempotent)
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS event_registrations (
-      id SERIAL PRIMARY KEY,
-      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-      status VARCHAR(20) NOT NULL DEFAULT 'registered',
-      registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE (user_id, event_id)
-    );
-  `);
-
+  // ── Step 3: Create indexes ──────────────────────────────────────
   await db.query(`
     CREATE INDEX IF NOT EXISTS idx_event_registrations_event_id
       ON event_registrations(event_id);
