@@ -77,13 +77,15 @@ Server chạy tại `http://localhost:5000`.
 | GET | `/api/health` | Health check | — |
 
 ## Deploy lên Render.com
-1. Push repo lên GitHub
-2. Tại [render.com](https://render.com) → New Web Service → connect repo
-3. Build Command: `npm install`
-4. Start Command: `node index.js`
-5. Thêm Environment Variables từ `.env.example`
-6. Tạo PostgreSQL database (free tier) và set `DATABASE_URL`
+
+👉 Xem hướng dẫn chi tiết step-by-step tại file [DEPLOY.md](./DEPLOY.md)
+
+**Tóm tắt**: Ứng dụng deploy dạng monolith — backend serve cả frontend.
+Build command tự build React app và copy vào `public/`.
 
 ## Tài khoản mặc định (sau khi seed)
 - **Admin**: `admin` / `admin123`
+- **Cán bộ Đoàn**: `union_officer` / `password123`
 - **Sinh viên**: `student` / `password123`
+- **Sinh viên 2**: `student2` / `password123`
+
