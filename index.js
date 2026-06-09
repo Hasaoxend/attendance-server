@@ -49,6 +49,9 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
+// Trust proxy — needed for req.ip to return real client IP behind Render/nginx
+app.set('trust proxy', true);
+
 // Serve uploaded files (event decision images, etc.)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
