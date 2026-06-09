@@ -21,7 +21,8 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 exports.checkin = async (req, res) => {
     const { eventId, token, lat, lng, deviceId } = req.body;
     const userId = req.user.id;
-    const ipAddress = req.ip;
+    const rawIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+    const ipAddress = rawIp === '::1' ? '127.0.0.1' : rawIp.replace(/^::ffff:/, '');
 
     try {
         // 2. Fetch event details
