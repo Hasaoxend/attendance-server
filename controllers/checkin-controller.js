@@ -80,10 +80,23 @@ exports.checkin = async (req, res) => {
             return res.status(403).json({ message: 'This device has already been used for attendance in this event' });
         }
 
-        // 7. Perform Check-in
+        // 7. IP Address Check (Anti-cheat: flag suspicious shared IP)
+        const IP_THRESHOLD = 3; // Max check-ins from same IP before flagging
+        const { rows: ipUsage } = await db.query(
+            'SELECT COUNT(DISTINCT user_id)::int as count FROM checkins WHERE event_id = $1 AND ip_address = $2',
+            [eventId, ipAddress]
+        );
+        const ipCount = ipUsage[0]?.count || 0;
+        const isIpAnomaly = ipCount >= IP_THRESHOLD;
+        const anomalyDetails = isIpAnomaly
+            ? `IP ${ipAddress} đã được sử dụng bởi ${ipCount} tài khoản khác trong sự kiện này`
+            : null;
+
+        // 8. Perform Check-in (with anomaly flag if suspicious)
         await db.query(
-            'INSERT INTO checkins (user_id, event_id, lat, lng, device_id, ip_address) VALUES ($1, $2, $3, $4, $5, $6)',
-            [userId, eventId, lat, lng, deviceId, ipAddress]
+            `INSERT INTO checkins (user_id, event_id, lat, lng, device_id, ip_address, status, anomaly_details) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [userId, eventId, lat, lng, deviceId, ipAddress, isIpAnomaly ? 'anomaly' : 'success', anomalyDetails]
         );
 
         res.json({ 
@@ -91,7 +104,8 @@ exports.checkin = async (req, res) => {
             score: event.score,
             trainingPoints: event.training_points,
             eventName: event.name,
-            checkinTime: now
+            checkinTime: now,
+            warning: isIpAnomaly ? 'Cảnh báo: Địa chỉ IP của bạn trùng với nhiều tài khoản khác.' : undefined
         });
 
     } catch (err) {
