@@ -7,7 +7,7 @@ const ExcelJS = require('exceljs');
 // ============================================================
 // 7.1 — Thống kê hoạt động (Overview)
 // ============================================================
-router.get('/overview', auth('admin', 'union'), async (_req, res) => {
+router.get('/overview', auth('admin', 'union', 'lecturer'), async (_req, res) => {
     try {
         const { rows } = await db.query(`
             SELECT
@@ -27,7 +27,7 @@ router.get('/overview', auth('admin', 'union'), async (_req, res) => {
 });
 
 // Monthly event counts (for chart)
-router.get('/events-by-month', auth('admin', 'union'), async (_req, res) => {
+router.get('/events-by-month', auth('admin', 'union', 'lecturer'), async (_req, res) => {
     try {
         const { rows } = await db.query(`
             SELECT 
@@ -48,7 +48,7 @@ router.get('/events-by-month', auth('admin', 'union'), async (_req, res) => {
 // ============================================================
 // 7.2 — Thống kê đăng ký
 // ============================================================
-router.get('/registrations', auth('admin', 'union'), async (req, res) => {
+router.get('/registrations', auth('admin', 'union', 'lecturer'), async (req, res) => {
     const { from, to } = req.query;
     try {
         let query = `
@@ -88,7 +88,7 @@ router.get('/registrations', auth('admin', 'union'), async (req, res) => {
 // ============================================================
 // 7.3 — Thống kê điểm danh
 // ============================================================
-router.get('/attendance', auth('admin', 'union'), async (req, res) => {
+router.get('/attendance', auth('admin', 'union', 'lecturer'), async (req, res) => {
     const { eventId, from, to } = req.query;
     try {
         let query = `
@@ -134,7 +134,7 @@ router.get('/attendance', auth('admin', 'union'), async (req, res) => {
 // ============================================================
 // 7.4 — Thống kê điểm rèn luyện (Training Points Ranking)
 // ============================================================
-router.get('/training-points', auth('admin', 'union'), async (req, res) => {
+router.get('/training-points', auth('admin', 'union', 'lecturer'), async (req, res) => {
     const { from, to } = req.query;
     try {
         let dateFilter = '';
@@ -171,7 +171,7 @@ router.get('/training-points', auth('admin', 'union'), async (req, res) => {
 // ============================================================
 // 7.5 — Tra cứu lịch sử hoạt động + IP/Device
 // ============================================================
-router.get('/activity-log', auth('admin', 'union'), async (req, res) => {
+router.get('/activity-log', auth('admin', 'union', 'lecturer'), async (req, res) => {
     const { q, studentId, from, to } = req.query;
     try {
         let query = `
@@ -221,7 +221,7 @@ router.get('/activity-log', auth('admin', 'union'), async (req, res) => {
 // ============================================================
 // 7.6 — Xuất báo cáo Excel
 // ============================================================
-router.get('/export/excel', auth('admin', 'union'), async (req, res) => {
+router.get('/export/excel', auth('admin', 'union', 'lecturer'), async (req, res) => {
     const { type, eventId, from, to } = req.query;
 
     try {

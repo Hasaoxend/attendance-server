@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
     const requestedRole = role || 'student';
 
     // Validate role value
-    const validRoles = ['admin', 'union', 'student'];
+    const validRoles = ['admin', 'union', 'lecturer', 'student'];
     if (!validRoles.includes(requestedRole)) {
         return res.status(400).json({ message: 'Invalid role. Must be: admin, union, or student' });
     }

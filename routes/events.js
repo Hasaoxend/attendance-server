@@ -274,7 +274,9 @@ router.get('/:id/registrations', auth('admin', 'union'), async (req, res) => {
             SELECT u.id, u.username, u.name, u.student_code, u.class_name, u.faculty, u.institute,
                    r.registered_at,
                    CASE WHEN c.id IS NULL THEN 'absent' ELSE 'checked_in' END as status,
-                   c.checkin_time
+                   c.checkin_time,
+                   c.ip_address,
+                   c.device_id
             FROM event_registrations r
             JOIN users u ON u.id = r.user_id
             LEFT JOIN checkins c ON c.user_id = r.user_id AND c.event_id = r.event_id

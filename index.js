@@ -13,6 +13,7 @@ const checkinRoutes = require('./routes/checkins');
 const studentRoutes = require('./routes/students');
 const historyRoutes = require('./routes/history');
 const reportRoutes = require('./routes/reports');
+const userRoutes = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -58,6 +59,7 @@ app.use('/api/checkins', checkinRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check endpoint (useful for Render.com)
 app.get('/api/health', (_req, res) => {
