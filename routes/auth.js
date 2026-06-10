@@ -3,6 +3,9 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 
 // @route   POST api/auth/login
 router.post('/login', async (req, res) => {
@@ -34,7 +37,8 @@ router.post('/login', async (req, res) => {
                 username: user.username,
                 name: user.name,
                 role: user.role,
-                studentCode: user.student_code
+                studentCode: user.student_code,
+                avatarUrl: user.avatar_url || ''
             }
         });
     } catch (err) {
@@ -122,6 +126,84 @@ router.put('/change-password', auth(), async (req, res) => {
         await db.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, userId]);
 
         res.json({ message: 'Đổi mật khẩu thành công!' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+});
+
+// ─── Avatar Upload ─────────────────────────────────────────
+const avatarsDir = path.join(__dirname, '..', 'uploads', 'avatars');
+fs.mkdirSync(avatarsDir, { recursive: true });
+
+const avatarStorage = multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, avatarsDir),
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname || '').toLowerCase();
+        const safeExt = ['.png', '.jpg', '.jpeg', '.webp'].includes(ext) ? ext : '.png';
+        const userId = req.user.id;
+        cb(null, `avatar_${userId}_${Date.now()}${safeExt}`);
+    }
+});
+
+const avatarUpload = multer({
+    storage: avatarStorage,
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    fileFilter: (_req, file, cb) => {
+        const ok = ['image/png', 'image/jpeg', 'image/webp'].includes(file.mimetype);
+        cb(ok ? null : new Error('Chỉ hỗ trợ file ảnh (PNG, JPG, WEBP)'), ok);
+    }
+});
+
+// @route   PUT api/auth/avatar
+// @desc    Upload or replace avatar
+router.put('/avatar', auth(), (req, res) => {
+    avatarUpload.single('avatar')(req, res, async (uploadErr) => {
+        if (uploadErr) {
+            if (uploadErr.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: 'File quá lớn (tối đa 2MB)' });
+            }
+            return res.status(400).json({ message: uploadErr.message || 'Upload thất bại' });
+        }
+
+        try {
+            const userId = req.user.id;
+            const file = req.file;
+            if (!file) return res.status(400).json({ message: 'Không có file được chọn' });
+
+            // Delete old avatar file if exists
+            const { rows: oldRows } = await db.query('SELECT avatar_url FROM users WHERE id = $1', [userId]);
+            if (oldRows[0]?.avatar_url) {
+                const oldPath = path.join(__dirname, '..', oldRows[0].avatar_url);
+                fs.unlink(oldPath, () => {}); // ignore error if file doesn't exist
+            }
+
+            const publicUrl = `/uploads/avatars/${file.filename}`;
+            await db.query('UPDATE users SET avatar_url = $1 WHERE id = $2', [publicUrl, userId]);
+
+            res.json({ message: 'Cập nhật ảnh đại diện thành công', avatarUrl: publicUrl });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Lỗi server' });
+        }
+    });
+});
+
+// @route   DELETE api/auth/avatar
+// @desc    Remove avatar (revert to default)
+router.delete('/avatar', auth(), async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Delete old file
+        const { rows } = await db.query('SELECT avatar_url FROM users WHERE id = $1', [userId]);
+        if (rows[0]?.avatar_url) {
+            const oldPath = path.join(__dirname, '..', rows[0].avatar_url);
+            fs.unlink(oldPath, () => {});
+        }
+
+        await db.query("UPDATE users SET avatar_url = '' WHERE id = $1", [userId]);
+        res.json({ message: 'Đã xóa ảnh đại diện' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Lỗi server' });

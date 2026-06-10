@@ -73,7 +73,8 @@ module.exports = async function ensureSchema(db) {
       ADD COLUMN IF NOT EXISTS class_name VARCHAR(100) DEFAULT '',
       ADD COLUMN IF NOT EXISTS faculty VARCHAR(150) DEFAULT '',
       ADD COLUMN IF NOT EXISTS institute VARCHAR(150) DEFAULT '',
-      ADD COLUMN IF NOT EXISTS position VARCHAR(100) DEFAULT '';
+      ADD COLUMN IF NOT EXISTS position VARCHAR(100) DEFAULT '',
+      ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT '';
   `);
 
   await db.query(`
